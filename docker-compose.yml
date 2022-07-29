@@ -1,0 +1,40 @@
+version: '2.6.1'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+  orderdbcontext:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+  productdbcontext:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+  portainer:
+    image: portainer/portainer-ce
+  orderingcontext.api:
+    image: ${DOCKER_REGISTRY-}orderingcontext-api:${PLATFORM:-linux}-${TAG:-latest}loca
+    build:
+      context: .
+      dockerfile: OrderContent.API/Dockerfile
+  productcontext.api:
+    image: ${DOCKER_REGISTRY-}productcontext-api:${PLATFORM:-linux}-${TAG:-latest}loca
+    build:
+      context: .
+      dockerfile: Product.API/Dockerfile
+  gatewaycontext-api:
+    container_name: gatewaycontext-api
+    image: ${DOCKER_REGISTRY-}gatewaycontext-api:${PLATFORM:-linux}-${TAG:-latest}
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "6012:80"
+    build:
+      context: .
+      dockerfile: APIGateway.API/Dockerfile
+networks:
+  default:
+    name: netcore_microservices
+    driver: bridge
+volumes:
+  sqlserver_data:
+    name: sqlserver_data
+  portainer_data:
+    name: portainer_data

@@ -1,0 +1,59 @@
+version: '2.6.1'
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  orderdbcontext:
+    container_name: orderdbcontext
+    environment:
+      SA_PASSWORD: "Passw0rd!"
+      ACCEPT_EULA: "Y"
+    restart: always
+    volumes:
+      - sqlserver_data:/var/lib/sqlserver/data
+    ports:
+      - "1436:1433"
+  productdbcontext:
+    container_name: productdbcontext
+    environment:
+      SA_PASSWORD: "Passw0rd!"
+      ACCEPT_EULA: "Y"
+    restart: always
+    volumes:
+      - sqlserver_data:/var/lib/sqlserver/data
+    ports:
+      - "1437:1433"
+  portainer:
+    container_name: portainer
+    restart: always
+    ports:
+      - "8080:8000"
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+  orderingcontext.api:
+    container_name: orderingcontext.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - "ConnectionStrings:DefaultConnectionString=Server=orderdbcontext;Database=OrderDbContext;User Id=sa;Password=Passw0rd!;Multipleactiveresultsets=true"
+    depends_on: 
+      - orderdbcontext
+    ports:
+      - "6010:80"
+    restart: always
+  productcontext.api:
+    container_name: productcontext.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - "ConnectionStrings:DefaultConnectionString=Server=productdbcontext;Database=ProductDbContext;User Id=sa;Password=Passw0rd!;Multipleactiveresultsets=true"
+    depends_on: 
+      - productdbcontext
+    ports:
+      - "6011:80"
+    restart: always
